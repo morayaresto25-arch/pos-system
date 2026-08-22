@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POS System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            padding: 10px;
+            padding-bottom: 80px;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+        }
+        
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .header h1 {
+            color: #1a73e8;
+            font-size: 20px;
+        }
+        
+        .header-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .header-controls input,
+        .header-controls select {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+            background: white;
+        }
+        
+        .header-controls input:focus,
+        .header-controls select:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+        
+        .status-message {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+        }
+        
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        .status-message.info {
+            background: #cce5ff;
+            color: #004085;
+            display: block;
+        }
+        
+        .pos-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .menu-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px;
+        }
+        
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 4px 0;
+            scrollbar-width: none;
+        }
+        
+        .category-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .category-tab {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        
+        .category-tab.active {
+            background: #1a73e8;
+            color: white;
+            border-color: #1a73e8;
+        }
+        
+        .category-tab:active {
+            transform: scale(0.95);
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            -webkit-appearance: none;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .menu-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .menu-item:active {
+            transform: scale(0.95);
+            border-color: #1a73e8;
+        }
+        
+        .menu-item .name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .menu-item .variant {
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .menu-item .price {
+            color: #1a73e8;
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+        
+        /* Printer Controls */
+        .printer-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn-printer {
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            touch-action: manipulation;
+            transition: all 0.2s;
+        }
+        
+        .btn-printer:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-printer.disconnected {
+            background: #ea4335;
+        }
+        
+        .btn-printer.connected {
+            background: #34a853;
+        }
+        
+        .btn-printer:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .printer-status {
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .printer-status .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .printer-status .status-dot.online {
+            background: #34a853;
+        }
+        
+        .printer-status .status-dot.offline {
+            background: #ea4335;
+        }
+        
+        /* Cart */
+        .cart-section {
+            background: white;
+            border-radius: 12px 12px 0 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-height: 60vh;
+            z-index: 100;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            overflow-y: auto;
+            transition: max-height 0.3s ease;
+        }
+        
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        
+        .cart-header h3 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .cart-header .badge {
+            background: #1a73e8;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 12px;
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .cart-toggle-icon {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .cart-items {
+            max-height: 200px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 8px 0;
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 4px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        
+        .cart-item .item-info {
+            flex: 1;
+            margin-right: 8px;
+        }
+        
+        .cart-item .item-name {
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .cart-item .item-variant {
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .cart-item .item-price {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .cart-item .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .cart-item .quantity-controls button {
+            background: #f0f2f5;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        
+        .cart-item .quantity-controls button:active {
+            background: #ddd;
+        }
+        
+        .cart-item .quantity-controls .qty {
+            min-width: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .cart-item .remove-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cart-item .remove-btn:active {
+            background: #cc0000;
+        }
+        
+        .cart-total {
+            border-top: 2px solid #f0f2f5;
+            padding-top: 10px;
+            margin-top: 8px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            margin: 4px 0;
+        }
+        
+        .total-row.grand {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a73e8;
+        }
+        
+        .checkout-form {
+            margin: 10px 0;
+        }
+        
+        .checkout-form input,
+        .checkout-form select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            -webkit-appearance: none;
+            background: white;
+        }
+        
+        .checkout-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .btn-checkout {
+            width: 100%;
+            padding: 14px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: all 0.2s;
+        }
+        
+        .btn-checkout:active {
+            background: #1557b0;
+            transform: scale(0.98);
+        }
+        
+        .btn-checkout:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .btn-clear {
+            padding: 6px 14px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .btn-clear:active {
+            background: #cc0000;
+        }
+        
+        /* Modals */
+        .quantity-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .quantity-modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .quantity-modal-content h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        
+        .quantity-modal-content .qty-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            margin: 20px 0;
+        }
+        
+        .quantity-modal-content .qty-selector button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: #1a73e8;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        
+        .quantity-modal-content .qty-selector button:active {
+            background: #1557b0;
+            transform: scale(0.95);
+        }
+        
+        .quantity-modal-content .qty-selector span {
+            font-size: 32px;
+            font-weight: 700;
+            min-width: 50px;
+        }
+        
+        .quantity-modal-content .btn-add {
+            padding: 14px 40px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            touch-action: manipulation;
+        }
+        
+        .quantity-modal-content .btn-add:active {
+            background: #388e3c;
+            transform: scale(0.98);
+        }
+        
+        .quantity-modal-content .btn-cancel {
+            padding: 14px 30px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 16px;
+            touch-action: manipulation;
+        }
+        
+        .quantity-modal-content .btn-cancel:active {
+            background: #555;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 92%;
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+        
+        .modal-content .success-icon {
+            font-size: 56px;
+            color: #4caf50;
+            margin-bottom: 10px;
+        }
+        
+        .receipt {
+            text-align: left;
+            margin: 12px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .receipt .receipt-header {
+            text-align: center;
+            border-bottom: 2px dashed #666;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .receipt .receipt-divider {
+            border-top: 1px dashed #666;
+            margin: 6px 0;
+        }
+        
+        .receipt .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            font-size: 12px;
+        }
+        
+        .receipt .receipt-total {
+            border-top: 2px solid #666;
+            padding-top: 6px;
+            margin-top: 6px;
+        }
+        
+        .receipt .receipt-total .total-row {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .receipt .receipt-footer {
+            text-align: center;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 2px dashed #666;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .modal-actions button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            touch-action: manipulation;
+            flex: 1;
+            min-width: 80px;
+            transition: all 0.2s;
+        }
+        
+        .modal-actions button:active {
+            transform: scale(0.96);
+        }
+        
+        .modal-actions .btn-print {
+            background: #1a73e8;
+            color: white;
+        }
+        
+        .modal-actions .btn-continue {
+            background: #666;
+            color: white;
+        }
+        
+        .modal-actions .btn-printer-print {
+            background: #34a853;
+            color: white;
+        }
+        
+        @media (max-width: 480px) {
+            .menu-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+            
+            .menu-item {
+                min-height: 70px;
+                padding: 10px;
+            }
+            
+            .menu-item .price {
+                font-size: 16px;
+            }
+            
+            .checkout-form .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-section {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <h1>🍽️ POS</h1>
+                <div id="status" class="status-message"></div>
+            </div>
+            <div class="header-controls">
+                <input type="text" id="cashierName" placeholder="👤 Cashier Name" required>
+                <select id="orderType">
+                    <option value="Dine In">Dine In</option>
+                    <option value="Take Out">Take Out</option>
+                    <option value="Delivery">Delivery</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Printer Controls -->
+        <div class="printer-controls">
+            <button class="btn-printer disconnected" id="printerBtn" onclick="connectPrinter()">
+                🔌 Connect Printer
+            </button>
+            <div class="printer-status" id="printerStatus">
+                <span class="status-dot offline" id="printerDot"></span>
+                <span id="printerStatusText">Disconnected</span>
+            </div>
+        </div>
+        
+        <div class="pos-grid">
+            <div class="menu-section">
+                <div class="category-tabs" id="categoryTabs">
+                    <div class="category-tab active" data-category="Foods">🍔 Foods</div>
+                    <div class="category-tab" data-category="Drinks">🥤 Drinks</div>
+                    <div class="category-tab" data-category="Add Ons">➕ Add Ons</div>
+                </div>
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search menu...">
+                <div class="menu-grid" id="menuGrid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cart -->
+    <div class="cart-section" id="cartSection">
+        <div class="cart-header" onclick="toggleCart()">
+            <h3>
+                🛒 Cart
+                <span class="badge" id="itemCount">0</span>
+            </h3>
+            <div>
+                <span id="totalDisplay" style="font-weight:600;margin-right:10px;">₱0.00</span>
+                <span class="cart-toggle-icon" id="cartToggleIcon">▲</span>
+            </div>
+        </div>
+        <div id="cartContent">
+            <div class="cart-items" id="cartItems">
+                <p style="text-align: center; color: #999; padding: 20px 0;">Cart is empty</p>
+            </div>
+            
+            <div class="cart-total">
+                <div class="total-row grand">
+                    <span>Total:</span>
+                    <span id="total">₱0.00</span>
+                </div>
+            </div>
+            
+            <div class="checkout-form">
+                <input type="text" id="customerName" placeholder="👤 Customer Name (optional)">
+                <div class="form-row">
+                    <select id="paymentMethod">
+                        <option value="Cash">Cash</option>
+                        <option value="Card">Card</option>
+                        <option value="GCash">GCash</option>
+                        <option value="PayPal">PayPal</option>
+                    </select>
+                    <input type="text" id="paymentReference" placeholder="Ref # (optional)">
+                </div>
+                <button class="btn-checkout" id="checkoutBtn" onclick="processCheckout()">
+                    💳 Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quantity Modal -->
+    <div class="quantity-modal" id="quantityModal">
+        <div class="quantity-modal-content">
+            <h3 id="qtyModalTitle">Select Quantity</h3>
+            <p id="qtyModalPrice" style="color: #1a73e8; font-size: 18px;"></p>
+            <div class="qty-selector">
+                <button onclick="changeQty(-1)">−</button>
+                <span id="qtyDisplay">1</span>
+                <button onclick="changeQty(1)">+</button>
+            </div>
+            <div>
+                <button class="btn-add" onclick="confirmAddToCart()">Add to Cart</button>
+                <button class="btn-cancel" onclick="closeQtyModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="success-icon">✅</div>
+            <h2>Order Complete!</h2>
+            <div class="receipt" id="receiptContent"></div>
+            <div class="modal-actions">
+                <button class="btn-printer-print" onclick="printToBluetooth()">🖨️ Print</button>
+                <button class="btn-print" onclick="printReceipt()">📄 PDF</button>
+                <button class="btn-continue" onclick="closeModal()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============= CONFIGURATION =============
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzCMKweyUlMf_2FNGx0FmjCZ0dDztwMyu7z8z9eCPON9o8tbgOhCXloGIfoqdtbDOeRow/exec';
+        // REPLACE THE ABOVE URL WITH YOUR ACTUAL WEB APP URL
+        
+        // ============= VARIABLES =============
+        let menuItems = [];
+        let cart = [];
+        let currentCategory = 'Foods';
+        let selectedItem = null;
+        let quantity = 1;
+        let currentSale = null;
+        let printerConnected = false;
+        let printerDevice = null;
+        let receiptData = null;
+        
+        // ============= DOM ELEMENTS =============
+        const menuGrid = document.getElementById('menuGrid');
+        const cartItems = document.getElementById('cartItems');
+        const searchBox = document.getElementById('searchBox');
+        const categoryTabs = document.getElementById('categoryTabs');
+        const statusDiv = document.getElementById('status');
+        const cashierInput = document.getElementById('cashierName');
+        const printerBtn = document.getElementById('printerBtn');
+        const printerStatusText = document.getElementById('printerStatusText');
+        const printerDot = document.getElementById('printerDot');
+        let cartExpanded = true;
+        
+        // ============= INITIALIZATION =============
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('POS System Started');
+            console.log('Web App URL:', WEB_APP_URL);
+            loadMenu();
+            
+            categoryTabs.addEventListener('click', function(e) {
+                if (e.target.classList.contains('category-tab')) {
+                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentCategory = e.target.dataset.category;
+                    filterMenu();
+                }
+            });
+            
+            searchBox.addEventListener('input', filterMenu);
+            
+            if (!navigator.bluetooth) {
+                printerBtn.style.display = 'none';
+                document.getElementById('printerStatus').innerHTML = '⚠️ Bluetooth not supported';
+            }
+        });
+        
+        // ============= TOGGLE CART =============
+        function toggleCart() {
+            cartExpanded = !cartExpanded;
+            document.getElementById('cartContent').style.display = cartExpanded ? 'block' : 'none';
+            document.getElementById('cartToggleIcon').textContent = cartExpanded ? '▲' : '▼';
+        }
+        
+        // ============= MENU FUNCTIONS =============
+        async function loadMenu() {
+            try {
+                showStatus('Loading menu...', 'info');
+                console.log('Fetching from:', WEB_APP_URL + '?action=getMenuItems');
+                
+                const response = await fetch(WEB_APP_URL + '?action=getMenuItems');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                
+                const data = await response.json();
+                console.log('Menu data received:', data);
+                
+                if (data.error) {
+                    showStatus('Error: ' + data.error, 'error');
+                    return;
+                }
+                
+                if (!Array.isArray(data) || data.length === 0) {
+                    showStatus('No menu items found.', 'error');
+                    return;
+                }
+                
+                menuItems = data;
+                filterMenu();
+                showStatus('Menu loaded!', 'success');
+                setTimeout(() => {
+                    statusDiv.className = 'status-message';
+                    statusDiv.textContent = '';
+                }, 2000);
+            } catch (error) {
+                console.error('Load menu error:', error);
+                showStatus('Error loading menu: ' + error.message, 'error');
+            }
+        }
+        
+        function filterMenu() {
+            const query = searchBox.value.toLowerCase();
+            const filtered = menuItems.filter(item => {
+                const matchesCategory = item.category === currentCategory;
+                const matchesSearch = item.item.toLowerCase().includes(query) || 
+                                     (item.variant && item.variant.toLowerCase().includes(query));
+                return matchesCategory && matchesSearch;
+            });
+            
+            displayMenu(filtered);
+        }
+        
+        function displayMenu(items) {
+            if (!items || items.length === 0) {
+                menuGrid.innerHTML = '<p style="text-align: center; color: #999; padding: 30px 0;">No items found</p>';
+                return;
+            }
+            
+            const grouped = items.reduce((acc, item) => {
+                if (!acc[item.item]) {
+                    acc[item.item] = [];
+                }
+                acc[item.item].push(item);
+                return acc;
+            }, {});
+            
+            menuGrid.innerHTML = Object.keys(grouped).map(itemName => {
+                const variants = grouped[itemName];
+                return variants.map(v => `
+                    <div class="menu-item" onclick="openQtyModal('${v.item.replace(/'/g, "\\'")}', '${(v.variant || '').replace(/'/g, "\\'")}', ${v.price})">
+                        <div class="name">${v.item}</div>
+                        ${v.variant ? `<div class="variant">${v.variant}</div>` : ''}
+                        <div class="price">₱${v.price.toFixed(2)}</div>
+                    </div>
+                `).join('');
+            }).join('');
+        }
+        
+        // ============= QUANTITY MODAL =============
+        function openQtyModal(itemName, variant, price) {
+            selectedItem = { itemName, variant, price };
+            quantity = 1;
+            document.getElementById('qtyModalTitle').textContent = itemName + (variant ? ` (${variant})` : '');
+            document.getElementById('qtyModalPrice').textContent = `₱${price.toFixed(2)} each`;
+            document.getElementById('qtyDisplay').textContent = quantity;
+            document.getElementById('quantityModal').style.display = 'flex';
+        }
+        
+        function changeQty(delta) {
+            quantity = Math.max(1, quantity + delta);
+            document.getElementById('qtyDisplay').textContent = quantity;
+        }
+        
+        function closeQtyModal() {
+            document.getElementById('quantityModal').style.display = 'none';
+            selectedItem = null;
+        }
+        
+        function confirmAddToCart() {
+            if (!selectedItem) {
+                showStatus('Error: No item selected', 'error');
+                return;
+            }
+            
+            // Check if selectedItem has the required properties
+            if (!selectedItem.itemName) {
+                showStatus('Error: Invalid item data', 'error');
+                return;
+            }
+            
+            const existingItem = cart.find(item => 
+                item.itemName === selectedItem.itemName && 
+                item.variant === selectedItem.variant
+            );
+            
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({
+                    itemName: selectedItem.itemName,
+                    variant: selectedItem.variant || '',
+                    price: selectedItem.price,
+                    quantity: quantity,
+                    category: selectedItem.category || ''
+                });
+            }
+            
+            closeQtyModal();
+            updateCart();
+            showStatus(`${selectedItem.itemName} added!`, 'success');
+            setTimeout(() => {
+                statusDiv.className = 'status-message';
+                statusDiv.textContent = '';
+            }, 1500);
+        }
+        
+        // ============= CART FUNCTIONS =============
+        function updateCart() {
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p style="text-align: center; color: #999; padding: 15px 0;">Cart is empty</p>';
+                document.getElementById('total').textContent = '₱0.00';
+                document.getElementById('totalDisplay').textContent = '₱0.00';
+                document.getElementById('itemCount').textContent = '0';
+                document.getElementById('checkoutBtn').disabled = true;
+                return;
+            }
+            
+            let html = '';
+            let totalItems = 0;
+            let totalPrice = 0;
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                totalItems += item.quantity;
+                totalPrice += itemTotal;
+                
+                html += `
+                    <div class="cart-item">
+                        <div class="item-info">
+                            <div class="item-name">${item.itemName}</div>
+                            ${item.variant ? `<div class="item-variant">${item.variant}</div>` : ''}
+                            <div class="item-price">₱${item.price.toFixed(2)}</div>
+                        </div>
+                        <div class="quantity-controls">
+                            <button onclick="updateCartQty(${index}, -1)">−</button>
+                            <span class="qty">${item.quantity}</span>
+                            <button onclick="updateCartQty(${index}, 1)">+</button>
+                            <button class="remove-btn" onclick="removeFromCart(${index})">×</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartItems.innerHTML = html;
+            document.getElementById('total').textContent = `₱${totalPrice.toFixed(2)}`;
+            document.getElementById('totalDisplay').textContent = `₱${totalPrice.toFixed(2)}`;
+            document.getElementById('itemCount').textContent = totalItems;
+            document.getElementById('checkoutBtn').disabled = false;
+        }
+        
+        function updateCartQty(index, delta) {
+            const item = cart[index];
+            if (!item) return;
+            
+            const newQty = item.quantity + delta;
+            if (newQty <= 0) {
+                removeFromCart(index);
+                return;
+            }
+            
+            item.quantity = newQty;
+            updateCart();
+        }
+        
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+        
+        function clearCart() {
+            if (cart.length === 0) return;
+            if (confirm('Clear all items from cart?')) {
+                cart = [];
+                updateCart();
+                showStatus('Cart cleared', 'info');
+            }
+        }
+        
+        // ============= CHECKOUT =============
+        async function processCheckout() {
+            if (cart.length === 0) {
+                showStatus('Cart is empty!', 'error');
+                return;
+            }
+            
+            const cashier = document.getElementById('cashierName').value.trim();
+            if (!cashier) {
+                showStatus('Please enter cashier name!', 'error');
+                document.getElementById('cashierName').focus();
+                return;
+            }
+            
+            const customerName = document.getElementById('customerName').value.trim();
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const paymentReference = document.getElementById('paymentReference').value.trim();
+            const orderType = document.getElementById('orderType').value;
+            
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            document.getElementById('checkoutBtn').disabled = true;
+            document.getElementById('checkoutBtn').textContent = '⏳ Processing...';
+            
+            try {
+                let allSuccess = true;
+                let errorMessage = '';
+                
+                for (const item of cart) {
+                    const saleData = {
+                        cashier: cashier,
+                        category: item.category || '',
+                        item: item.itemName,
+                        variant: item.variant || '',
+                        quantity: item.quantity,
+                        price: item.price,
+                        total: item.price * item.quantity,
+                        paymentMethod: paymentMethod,
+                        paymentReference: paymentReference,
+                        customerName: customerName,
+                        orderType: orderType
+                    };
+                    
+                    console.log('Sending sale data:', saleData);
+                    
+                    const response = await fetch(`${WEB_APP_URL}?action=addSale`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(saleData)
+                    });
+                    
+                    console.log('Response status:', response.status);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Error response:', errorText);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const saleResult = await response.json();
+                    console.log('Sale result:', saleResult);
+                    
+                    if (!saleResult.success) {
+                        allSuccess = false;
+                        errorMessage = saleResult.message || 'Sale failed';
+                        break;
+                    }
+                    
+                    currentSale = saleResult;
+                }
+                
+                if (!allSuccess) {
+                    throw new Error(errorMessage || 'Sale failed');
+                }
+                
+                receiptData = {
+                    items: [...cart],
+                    total: total,
+                    cashier: cashier,
+                    customerName: customerName,
+                    paymentMethod: paymentMethod,
+                    orderType: orderType,
+                    receiptNumber: currentSale?.receiptNumber || 'N/A',
+                    date: currentSale?.date || new Date().toLocaleDateString(),
+                    time: currentSale?.time || new Date().toLocaleTimeString()
+                };
+                
+                showReceipt();
+                cart = [];
+                updateCart();
+                document.getElementById('customerName').value = '';
+                document.getElementById('paymentReference').value = '';
+                
+                showStatus('Order completed successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Checkout error:', error);
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
+                document.getElementById('checkoutBtn').disabled = false;
+                document.getElementById('checkoutBtn').textContent = '💳 Checkout';
+            }
+        }
+        
+        // ============= RECEIPT FUNCTIONS =============
+        function showReceipt() {
+            const receiptContent = document.getElementById('receiptContent');
+            
+            let receiptHTML = `
+                <div class="receipt-header">
+                    <h3>🍽️ POS System</h3>
+                    <p>${receiptData.date} ${receiptData.time}</p>
+                    <p>Receipt: ${receiptData.receiptNumber}</p>
+                    <p>Cashier: ${receiptData.cashier}</p>
+                    <p>${receiptData.orderType}</p>
+                    ${receiptData.customerName ? `<p>Customer: ${receiptData.customerName}</p>` : ''}
+                </div>
+                <div class="receipt-divider"></div>
+            `;
+            
+            receiptData.items.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                receiptHTML += `
+                    <div class="receipt-row">
+                        <span>${item.quantity}x ${item.itemName}${item.variant ? ' ('+item.variant+')' : ''}</span>
+                        <span>₱${itemTotal.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            
+            receiptHTML += `
+                <div class="receipt-divider"></div>
+                <div class="receipt-total">
+                    <div class="total-row">
+                        <span>Total:</span>
+                        <span>₱${receiptData.total.toFixed(2)}</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Payment:</span>
+                        <span>${receiptData.paymentMethod}</span>
+                    </div>
+                </div>
+                <div class="receipt-footer">
+                    <p>Thank you for your order!</p>
+                    <p>Please come again</p>
+                </div>
+            `;
+            
+            receiptContent.innerHTML = receiptHTML;
+            document.getElementById('successModal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('successModal').style.display = 'none';
+        }
+        
+        function printReceipt() {
+            window.print();
+        }
+        
+        // ============= BLUETOOTH PRINTER =============
+        async function connectPrinter() {
+            if (!navigator.bluetooth) {
+                showStatus('Bluetooth not supported', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('Searching for printer...', 'info');
+                printerBtn.disabled = true;
+                
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+                });
+                
+                printerDevice = device;
+                printerConnected = true;
+                
+                printerBtn.classList.remove('disconnected');
+                printerBtn.classList.add('connected');
+                printerBtn.innerHTML = '✅ Printer Connected';
+                printerStatusText.textContent = 'Connected to: ' + (device.name || 'Printer');
+                printerDot.className = 'status-dot online';
+                
+                showStatus('Printer connected!', 'success');
+                
+            } catch (error) {
+                if (error.message.includes('cancelled')) {
+                    showStatus('Connection cancelled', 'info');
+                } else {
+                    showStatus('Error: ' + error.message, 'error');
+                }
+                printerConnected = false;
+            } finally {
+                printerBtn.disabled = false;
+            }
+        }
+        
+        async function printToBluetooth() {
+            if (!printerConnected || !printerDevice) {
+                showStatus('Please connect printer first!', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('Printing...', 'info');
+                
+                const server = await printerDevice.gatt.connect();
+                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+                const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+                
+                let receiptText = '';
+                receiptText += '================\n';
+                receiptText += '   POS System   \n';
+                receiptText += '================\n';
+                receiptText += `${receiptData.date} ${receiptData.time}\n`;
+                receiptText += `Receipt: ${receiptData.receiptNumber}\n`;
+                receiptText += `Cashier: ${receiptData.cashier}\n`;
+                receiptText += `${receiptData.orderType}\n`;
+                if (receiptData.customerName) {
+                    receiptText += `Customer: ${receiptData.customerName}\n`;
+                }
+                receiptText += '----------------\n';
+                
+                receiptData.items.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    const name = item.itemName + (item.variant ? ' ('+item.variant+')' : '');
+                    receiptText += `${item.quantity}x ${name}\n`;
+                    receiptText += `     ₱${itemTotal.toFixed(2)}\n`;
+                });
+                
+                receiptText += '----------------\n';
+                receiptText += `TOTAL: ₱${receiptData.total.toFixed(2)}\n`;
+                receiptText += `Payment: ${receiptData.paymentMethod}\n`;
+                receiptText += '================\n';
+                receiptText += 'Thank you!\n';
+                receiptText += '================\n\n\n';
+                
+                const encoder = new TextEncoder();
+                const data = encoder.encode(receiptText);
+                await characteristic.writeValue(data);
+                
+                showStatus('Printing complete!', 'success');
+                
+            } catch (error) {
+                showStatus('Print error: ' + error.message, 'error');
+            }
+        }
+        
+        // ============= UTILITY FUNCTIONS =============
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message';
+            if (type) {
+                statusDiv.classList.add(type);
+            }
+        }
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('successModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+            const qtyModal = document.getElementById('quantityModal');
+            if (event.target === qtyModal) {
+                qtyModal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
