@@ -209,7 +209,6 @@
             margin-top: 4px;
         }
         
-        /* Printer Controls */
         .printer-controls {
             display: flex;
             gap: 8px;
@@ -275,7 +274,6 @@
             background: #ea4335;
         }
         
-        /* Cart */
         .cart-section {
             background: white;
             border-radius: 12px 12px 0 0;
@@ -486,7 +484,6 @@
             background: #cc0000;
         }
         
-        /* Modals */
         .quantity-modal {
             display: none;
             position: fixed;
@@ -641,6 +638,11 @@
             margin-bottom: 8px;
         }
         
+        .receipt .receipt-header h3 {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        
         .receipt .receipt-divider {
             border-top: 1px dashed #666;
             margin: 6px 0;
@@ -755,7 +757,6 @@
             </div>
         </div>
         
-        <!-- Printer Controls -->
         <div class="printer-controls">
             <button class="btn-printer disconnected" id="printerBtn" onclick="connectPrinter()">
                 🔌 Connect Printer
@@ -779,7 +780,6 @@
         </div>
     </div>
     
-    <!-- Cart -->
     <div class="cart-section" id="cartSection">
         <div class="cart-header" onclick="toggleCart()">
             <h3>
@@ -821,7 +821,6 @@
         </div>
     </div>
     
-    <!-- Quantity Modal -->
     <div class="quantity-modal" id="quantityModal">
         <div class="quantity-modal-content">
             <h3 id="qtyModalTitle">Select Quantity</h3>
@@ -838,7 +837,6 @@
         </div>
     </div>
     
-    <!-- Success Modal -->
     <div class="modal" id="successModal">
         <div class="modal-content">
             <div class="success-icon">✅</div>
@@ -854,8 +852,8 @@
 
     <script>
         // ============= CONFIGURATION =============
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzCMKweyUlMf_2FNGx0FmjCZ0dDztwMyu7z8z9eCPON9o8tbgOhCXloGIfoqdtbDOeRow/exec';
-        // REPLACE THE ABOVE URL WITH YOUR ACTUAL WEB APP URL
+        // REPLACE THIS WITH YOUR ACTUAL WEB APP URL FROM APPS SCRIPT
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwAku3G2YvVEhD6OGB2rN-EA8Y7xsC15KV5HOERvaaWa7eiJv_VDPuFv2fOY44SPynk8A/exec';
         
         // ============= VARIABLES =============
         let menuItems = [];
@@ -1013,7 +1011,6 @@
                 return;
             }
             
-            // Check if selectedItem has the required properties
             if (!selectedItem.itemName) {
                 showStatus('Error: Invalid item data', 'error');
                 return;
