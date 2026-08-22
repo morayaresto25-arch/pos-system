@@ -5,743 +5,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POS System</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-            padding: 10px;
-            padding-bottom: 80px;
-        }
-        
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            padding: 12px;
-        }
-        
-        .header {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 15px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #f0f2f5;
-        }
-        
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .header h1 {
-            color: #1a73e8;
-            font-size: 20px;
-        }
-        
-        .header-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .header-controls input,
-        .header-controls select {
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            width: 100%;
-            background: white;
-        }
-        
-        .header-controls input:focus,
-        .header-controls select:focus {
-            outline: none;
-            border-color: #1a73e8;
-        }
-        
-        .status-message {
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 8px;
-            display: none;
-            font-size: 14px;
-        }
-        
-        .status-message.success {
-            background: #d4edda;
-            color: #155724;
-            display: block;
-        }
-        
-        .status-message.error {
-            background: #f8d7da;
-            color: #721c24;
-            display: block;
-        }
-        
-        .status-message.info {
-            background: #cce5ff;
-            color: #004085;
-            display: block;
-        }
-        
-        .pos-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .menu-section {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 12px;
-        }
-        
-        .category-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: 4px 0;
-            scrollbar-width: none;
-        }
-        
-        .category-tabs::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .category-tab {
-            padding: 8px 16px;
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
-            flex-shrink: 0;
-            transition: all 0.2s;
-        }
-        
-        .category-tab.active {
-            background: #1a73e8;
-            color: white;
-            border-color: #1a73e8;
-        }
-        
-        .category-tab:active {
-            transform: scale(0.95);
-        }
-        
-        .search-box {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            -webkit-appearance: none;
-        }
-        
-        .search-box:focus {
-            outline: none;
-            border-color: #1a73e8;
-        }
-        
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            max-height: 500px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .menu-item {
-            background: white;
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            min-height: 80px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.2s;
-        }
-        
-        .menu-item:active {
-            transform: scale(0.95);
-            border-color: #1a73e8;
-        }
-        
-        .menu-item .name {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 2px;
-        }
-        
-        .menu-item .variant {
-            color: #666;
-            font-size: 11px;
-        }
-        
-        .menu-item .price {
-            color: #1a73e8;
-            font-size: 18px;
-            font-weight: 700;
-            margin-top: 4px;
-        }
-        
-        .printer-controls {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        
-        .btn-printer {
-            padding: 10px 20px;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            touch-action: manipulation;
-            transition: all 0.2s;
-        }
-        
-        .btn-printer:active {
-            transform: scale(0.95);
-        }
-        
-        .btn-printer.disconnected {
-            background: #ea4335;
-        }
-        
-        .btn-printer.connected {
-            background: #34a853;
-        }
-        
-        .btn-printer:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .printer-status {
-            font-size: 13px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .printer-status .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        
-        .printer-status .status-dot.online {
-            background: #34a853;
-        }
-        
-        .printer-status .status-dot.offline {
-            background: #ea4335;
-        }
-        
-        .cart-section {
-            background: white;
-            border-radius: 12px 12px 0 0;
-            padding: 15px;
-            border: 1px solid #ddd;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-height: 60vh;
-            z-index: 100;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
-            overflow-y: auto;
-            transition: max-height 0.3s ease;
-        }
-        
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
-        
-        .cart-header h3 {
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .cart-header .badge {
-            background: #1a73e8;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 8px;
-            font-size: 12px;
-            min-width: 24px;
-            text-align: center;
-        }
-        
-        .cart-toggle-icon {
-            font-size: 20px;
-            transition: transform 0.3s ease;
-        }
-        
-        .cart-items {
-            max-height: 200px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 8px 0;
-        }
-        
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 4px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-        
-        .cart-item .item-info {
-            flex: 1;
-            margin-right: 8px;
-        }
-        
-        .cart-item .item-name {
-            font-weight: 500;
-            font-size: 13px;
-        }
-        
-        .cart-item .item-variant {
-            color: #666;
-            font-size: 11px;
-        }
-        
-        .cart-item .item-price {
-            color: #666;
-            font-size: 12px;
-        }
-        
-        .cart-item .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .cart-item .quantity-controls button {
-            background: #f0f2f5;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: manipulation;
-        }
-        
-        .cart-item .quantity-controls button:active {
-            background: #ddd;
-        }
-        
-        .cart-item .quantity-controls .qty {
-            min-width: 25px;
-            text-align: center;
-            font-weight: 600;
-        }
-        
-        .cart-item .remove-btn {
-            background: #ff4444;
-            color: white;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .cart-item .remove-btn:active {
-            background: #cc0000;
-        }
-        
-        .cart-total {
-            border-top: 2px solid #f0f2f5;
-            padding-top: 10px;
-            margin-top: 8px;
-        }
-        
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 15px;
-            margin: 4px 0;
-        }
-        
-        .total-row.grand {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a73e8;
-        }
-        
-        .checkout-form {
-            margin: 10px 0;
-        }
-        
-        .checkout-form input,
-        .checkout-form select {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 8px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            -webkit-appearance: none;
-            background: white;
-        }
-        
-        .checkout-form .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-        
-        .btn-checkout {
-            width: 100%;
-            padding: 14px;
-            background: #1a73e8;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            touch-action: manipulation;
-            transition: all 0.2s;
-        }
-        
-        .btn-checkout:active {
-            background: #1557b0;
-            transform: scale(0.98);
-        }
-        
-        .btn-checkout:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .btn-clear {
-            padding: 6px 14px;
-            background: #ff4444;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        
-        .btn-clear:active {
-            background: #cc0000;
-        }
-        
-        .quantity-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            animation: fadeIn 0.2s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .quantity-modal-content {
-            background: white;
-            padding: 25px;
-            border-radius: 16px;
-            max-width: 320px;
-            width: 90%;
-            text-align: center;
-            animation: slideUp 0.3s ease;
-        }
-        
-        @keyframes slideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .quantity-modal-content h3 {
-            margin-bottom: 8px;
-            font-size: 18px;
-        }
-        
-        .quantity-modal-content .qty-selector {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 25px;
-            margin: 20px 0;
-        }
-        
-        .quantity-modal-content .qty-selector button {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: none;
-            background: #1a73e8;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-        
-        .quantity-modal-content .qty-selector button:active {
-            background: #1557b0;
-            transform: scale(0.95);
-        }
-        
-        .quantity-modal-content .qty-selector span {
-            font-size: 32px;
-            font-weight: 700;
-            min-width: 50px;
-        }
-        
-        .quantity-modal-content .btn-add {
-            padding: 14px 40px;
-            background: #4caf50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: 600;
-            touch-action: manipulation;
-        }
-        
-        .quantity-modal-content .btn-add:active {
-            background: #388e3c;
-            transform: scale(0.98);
-        }
-        
-        .quantity-modal-content .btn-cancel {
-            padding: 14px 30px;
-            background: #666;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-left: 8px;
-            font-size: 16px;
-            touch-action: manipulation;
-        }
-        
-        .quantity-modal-content .btn-cancel:active {
-            background: #555;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 1001;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 25px;
-            border-radius: 16px;
-            max-width: 400px;
-            width: 92%;
-            text-align: center;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-        }
-        
-        .modal-content .success-icon {
-            font-size: 56px;
-            color: #4caf50;
-            margin-bottom: 10px;
-        }
-        
-        .receipt {
-            text-align: left;
-            margin: 12px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-        
-        .receipt .receipt-header {
-            text-align: center;
-            border-bottom: 2px dashed #666;
-            padding-bottom: 8px;
-            margin-bottom: 8px;
-        }
-        
-        .receipt .receipt-header h3 {
-            font-size: 15px;
-            margin-bottom: 4px;
-        }
-        
-        .receipt .receipt-divider {
-            border-top: 1px dashed #666;
-            margin: 6px 0;
-        }
-        
-        .receipt .receipt-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 2px 0;
-            font-size: 12px;
-        }
-        
-        .receipt .receipt-total {
-            border-top: 2px solid #666;
-            padding-top: 6px;
-            margin-top: 6px;
-        }
-        
-        .receipt .receipt-total .total-row {
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .receipt .receipt-footer {
-            text-align: center;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 2px dashed #666;
-            font-size: 10px;
-            color: #666;
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .modal-actions button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            touch-action: manipulation;
-            flex: 1;
-            min-width: 80px;
-            transition: all 0.2s;
-        }
-        
-        .modal-actions button:active {
-            transform: scale(0.96);
-        }
-        
-        .modal-actions .btn-print {
-            background: #1a73e8;
-            color: white;
-        }
-        
-        .modal-actions .btn-continue {
-            background: #666;
-            color: white;
-        }
-        
-        .modal-actions .btn-printer-print {
-            background: #34a853;
-            color: white;
-        }
-        
+        /* --- General & Layout Styles --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; padding: 10px; padding-bottom: 80px; }
+        .container { max-width: 100%; margin: 0 auto; background: white; border-radius: 12px; padding: 12px; }
+        .header { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid #f0f2f5; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header h1 { color: #1a73e8; font-size: 20px; }
+        .header-controls { display: flex; flex-direction: column; gap: 8px; }
+        .header-controls input, .header-controls select { padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; width: 100%; background: white; }
+        .header-controls input:focus, .header-controls select:focus { outline: none; border-color: #1a73e8; }
+        .status-message { padding: 10px; margin: 8px 0; border-radius: 8px; display: none; font-size: 14px; }
+        .status-message.success { background: #d4edda; color: #155724; display: block; }
+        .status-message.error { background: #f8d7da; color: #721c24; display: block; }
+        .status-message.info { background: #cce5ff; color: #004085; display: block; }
+
+        /* --- Menu --- */
+        .pos-grid { display: flex; flex-direction: column; gap: 15px; }
+        .menu-section { background: #f8f9fa; border-radius: 12px; padding: 12px; }
+        .category-tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 4px 0; scrollbar-width: none; }
+        .category-tabs::-webkit-scrollbar { display: none; }
+        .category-tab { padding: 8px 16px; background: white; border: 2px solid #ddd; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 14px; white-space: nowrap; flex-shrink: 0; transition: all 0.2s; }
+        .category-tab.active { background: #1a73e8; color: white; border-color: #1a73e8; }
+        .category-tab:active { transform: scale(0.95); }
+        .search-box { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; -webkit-appearance: none; }
+        .search-box:focus { outline: none; border-color: #1a73e8; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 500px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .menu-item { background: white; border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; border: 2px solid transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.05); min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.2s; }
+        .menu-item:active { transform: scale(0.95); border-color: #1a73e8; }
+        .menu-item .name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+        .menu-item .variant { color: #666; font-size: 11px; }
+        .menu-item .price { color: #1a73e8; font-size: 18px; font-weight: 700; margin-top: 4px; }
+
+        /* --- Printer Controls --- */
+        .printer-controls { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+        .btn-printer { padding: 10px 20px; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; touch-action: manipulation; transition: all 0.2s; }
+        .btn-printer:active { transform: scale(0.95); }
+        .btn-printer.disconnected { background: #ea4335; }
+        .btn-printer.connected { background: #34a853; }
+        .btn-printer:disabled { background: #ccc; cursor: not-allowed; }
+        .printer-status { font-size: 13px; padding: 8px 12px; border-radius: 6px; background: #f8f9fa; display: flex; align-items: center; gap: 8px; }
+        .printer-status .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .printer-status .status-dot.online { background: #34a853; }
+        .printer-status .status-dot.offline { background: #ea4335; }
+
+        /* --- Cart --- */
+        .cart-section { background: white; border-radius: 12px 12px 0 0; padding: 15px; border: 1px solid #ddd; position: fixed; bottom: 0; left: 0; right: 0; max-height: 65vh; z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); overflow-y: auto; transition: max-height 0.3s ease; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; cursor: pointer; }
+        .cart-header h3 { font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .cart-header .badge { background: #1a73e8; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; min-width: 24px; text-align: center; }
+        .cart-toggle-icon { font-size: 20px; transition: transform 0.3s ease; }
+        .cart-items { max-height: 200px; overflow-y: auto; -webkit-overflow-scrolling: touch; margin: 8px 0; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .cart-item .item-info { flex: 1; margin-right: 8px; }
+        .cart-item .item-name { font-weight: 500; font-size: 13px; }
+        .cart-item .item-variant { color: #666; font-size: 11px; }
+        .cart-item .item-price { color: #666; font-size: 12px; }
+        .cart-item .quantity-controls { display: flex; align-items: center; gap: 6px; }
+        .cart-item .quantity-controls button { background: #f0f2f5; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 18px; display: flex; align-items: center; justify-content: center; touch-action: manipulation; }
+        .cart-item .quantity-controls button:active { background: #ddd; }
+        .cart-item .quantity-controls .qty { min-width: 25px; text-align: center; font-weight: 600; }
+        .cart-item .remove-btn { background: #ff4444; color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .cart-item .remove-btn:active { background: #cc0000; }
+        .cart-total { border-top: 2px solid #f0f2f5; padding-top: 10px; margin-top: 8px; }
+        .total-row { display: flex; justify-content: space-between; font-size: 15px; margin: 4px 0; }
+        .total-row.grand { font-size: 20px; font-weight: 700; color: #1a73e8; }
+
+        /* --- Checkout Form --- */
+        .checkout-form { margin: 10px 0; }
+        .checkout-form input, .checkout-form select { width: 100%; padding: 12px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; -webkit-appearance: none; background: white; }
+        .checkout-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .checkout-form .cash-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn-checkout { width: 100%; padding: 14px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; touch-action: manipulation; transition: all 0.2s; }
+        .btn-checkout:active { background: #1557b0; transform: scale(0.98); }
+        .btn-checkout:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-clear { padding: 6px 14px; background: #ff4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-clear:active { background: #cc0000; }
+
+        /* --- Modals --- */
+        .quantity-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .quantity-modal-content { background: white; padding: 25px; border-radius: 16px; max-width: 320px; width: 90%; text-align: center; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .quantity-modal-content h3 { margin-bottom: 8px; font-size: 18px; }
+        .quantity-modal-content .qty-selector { display: flex; align-items: center; justify-content: center; gap: 25px; margin: 20px 0; }
+        .quantity-modal-content .qty-selector button { width: 48px; height: 48px; border-radius: 50%; border: none; background: #1a73e8; color: white; font-size: 24px; cursor: pointer; touch-action: manipulation; }
+        .quantity-modal-content .qty-selector button:active { background: #1557b0; transform: scale(0.95); }
+        .quantity-modal-content .qty-selector span { font-size: 32px; font-weight: 700; min-width: 50px; }
+        .quantity-modal-content .btn-add { padding: 14px 40px; background: #4caf50; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 600; touch-action: manipulation; }
+        .quantity-modal-content .btn-add:active { background: #388e3c; transform: scale(0.98); }
+        .quantity-modal-content .btn-cancel { padding: 14px 30px; background: #666; color: white; border: none; border-radius: 8px; cursor: pointer; margin-left: 8px; font-size: 16px; touch-action: manipulation; }
+        .quantity-modal-content .btn-cancel:active { background: #555; }
+
+        /* --- Success Modal & Receipt --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1001; animation: fadeIn 0.3s ease; }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; max-width: 450px; width: 92%; text-align: center; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+        .modal-content .success-icon { font-size: 56px; color: #4caf50; margin-bottom: 10px; }
+        .modal-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .modal-actions button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; touch-action: manipulation; flex: 1; min-width: 80px; transition: all 0.2s; }
+        .modal-actions button:active { transform: scale(0.96); }
+        .modal-actions .btn-print { background: #1a73e8; color: white; }
+        .modal-actions .btn-continue { background: #666; color: white; }
+        .modal-actions .btn-printer-print { background: #34a853; color: white; }
+
+        /* --- 58mm Receipt Styling --- */
+        .receipt { text-align: left; margin: 12px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; max-height: 400px; overflow-y: auto; max-width: 320px; margin-left: auto; margin-right: auto; }
+        .receipt .receipt-header { text-align: center; border-bottom: 2px dashed #666; padding-bottom: 8px; margin-bottom: 8px; }
+        .receipt .receipt-header h3 { font-size: 16px; margin-bottom: 4px; }
+        .receipt .receipt-header p { margin: 2px 0; font-size: 12px; }
+        .receipt .receipt-divider { border-top: 1px dashed #666; margin: 6px 0; }
+        .receipt .receipt-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; }
+        .receipt .receipt-row .item-name-col { flex: 1; }
+        .receipt .receipt-row .item-price-col { font-weight: 600; text-align: right; min-width: 70px; }
+        .receipt .receipt-total { border-top: 2px solid #666; padding-top: 8px; margin-top: 8px; }
+        .receipt .receipt-total .total-row { font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; padding: 2px 0; }
+        .receipt .receipt-total .total-row .label { font-weight: normal; }
+        .receipt .receipt-total .total-row .amount { font-weight: 700; }
+        .receipt .receipt-total .total-row.grand-total { font-size: 16px; border-top: 2px solid #666; padding-top: 8px; margin-top: 4px; }
+        .receipt .receipt-total .total-row.grand-total .amount { color: #1a73e8; }
+        .receipt .receipt-footer { text-align: center; margin-top: 10px; padding-top: 10px; border-top: 2px dashed #666; font-size: 11px; color: #666; }
+
+        /* --- Responsive --- */
         @media (max-width: 480px) {
-            .menu-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            }
-            
-            .menu-item {
-                min-height: 70px;
-                padding: 10px;
-            }
-            
-            .menu-item .price {
-                font-size: 16px;
-            }
-            
-            .checkout-form .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .cart-section {
-                padding: 12px;
-            }
+            .menu-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+            .menu-item { min-height: 70px; padding: 10px; }
+            .menu-item .price { font-size: 16px; }
+            .checkout-form .form-row { grid-template-columns: 1fr; }
+            .checkout-form .cash-row { grid-template-columns: 1fr; }
+            .cart-section { padding: 12px; }
+        }
+        @media print {
+            body * { visibility: hidden; }
+            .receipt-print-area, .receipt-print-area * { visibility: visible; }
+            .receipt-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
             <div class="header-top">
                 <h1>🍽️ POS</h1>
@@ -757,16 +159,16 @@
             </div>
         </div>
         
+        <!-- Printer Controls -->
         <div class="printer-controls">
-            <button class="btn-printer disconnected" id="printerBtn" onclick="connectPrinter()">
-                🔌 Connect Printer
-            </button>
+            <button class="btn-printer disconnected" id="printerBtn" onclick="connectPrinter()">🔌 Connect Printer</button>
             <div class="printer-status" id="printerStatus">
                 <span class="status-dot offline" id="printerDot"></span>
                 <span id="printerStatusText">Disconnected</span>
             </div>
         </div>
         
+        <!-- Menu -->
         <div class="pos-grid">
             <div class="menu-section">
                 <div class="category-tabs" id="categoryTabs">
@@ -780,29 +182,20 @@
         </div>
     </div>
     
+    <!-- Cart -->
     <div class="cart-section" id="cartSection">
         <div class="cart-header" onclick="toggleCart()">
-            <h3>
-                🛒 Cart
-                <span class="badge" id="itemCount">0</span>
-            </h3>
+            <h3>🛒 Cart <span class="badge" id="itemCount">0</span></h3>
             <div>
                 <span id="totalDisplay" style="font-weight:600;margin-right:10px;">₱0.00</span>
                 <span class="cart-toggle-icon" id="cartToggleIcon">▲</span>
             </div>
         </div>
         <div id="cartContent">
-            <div class="cart-items" id="cartItems">
-                <p style="text-align: center; color: #999; padding: 20px 0;">Cart is empty</p>
-            </div>
-            
+            <div class="cart-items" id="cartItems"><p style="text-align: center; color: #999; padding: 20px 0;">Cart is empty</p></div>
             <div class="cart-total">
-                <div class="total-row grand">
-                    <span>Total:</span>
-                    <span id="total">₱0.00</span>
-                </div>
+                <div class="total-row grand"><span>Total:</span><span id="total">₱0.00</span></div>
             </div>
-            
             <div class="checkout-form">
                 <input type="text" id="customerName" placeholder="👤 Customer Name (optional)">
                 <div class="form-row">
@@ -814,13 +207,17 @@
                     </select>
                     <input type="text" id="paymentReference" placeholder="Ref # (optional)">
                 </div>
-                <button class="btn-checkout" id="checkoutBtn" onclick="processCheckout()">
-                    💳 Checkout
-                </button>
+                <!-- Cash Given and Change -->
+                <div class="cash-row" id="cashRow" style="display: none;">
+                    <input type="number" id="cashGiven" placeholder="💵 Cash Given" step="0.01" min="0" oninput="calculateChange()">
+                    <input type="text" id="changeDisplay" placeholder="🔄 Change" readonly style="background: #f5f5f5;">
+                </div>
+                <button class="btn-checkout" id="checkoutBtn" onclick="processCheckout()">💳 Checkout</button>
             </div>
         </div>
     </div>
     
+    <!-- Quantity Modal -->
     <div class="quantity-modal" id="quantityModal">
         <div class="quantity-modal-content">
             <h3 id="qtyModalTitle">Select Quantity</h3>
@@ -837,6 +234,7 @@
         </div>
     </div>
     
+    <!-- Success Modal with 58mm Receipt -->
     <div class="modal" id="successModal">
         <div class="modal-content">
             <div class="success-icon">✅</div>
@@ -865,6 +263,7 @@
         let printerConnected = false;
         let printerDevice = null;
         let receiptData = null;
+        let changeAmount = 0;
         
         // ============= DOM ELEMENTS =============
         const menuGrid = document.getElementById('menuGrid');
@@ -876,7 +275,39 @@
         const printerBtn = document.getElementById('printerBtn');
         const printerStatusText = document.getElementById('printerStatusText');
         const printerDot = document.getElementById('printerDot');
+        const paymentMethod = document.getElementById('paymentMethod');
+        const cashRow = document.getElementById('cashRow');
+        const cashGiven = document.getElementById('cashGiven');
+        const changeDisplay = document.getElementById('changeDisplay');
         let cartExpanded = true;
+        
+        // ============= SHOW/HIDE CASH ROW =============
+        paymentMethod.addEventListener('change', function() {
+            if (this.value === 'Cash') {
+                cashRow.style.display = 'grid';
+                calculateChange();
+            } else {
+                cashRow.style.display = 'none';
+                cashGiven.value = '';
+                changeDisplay.value = '';
+                changeAmount = 0;
+            }
+        });
+        
+        // ============= CALCULATE CHANGE =============
+        function calculateChange() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const given = parseFloat(cashGiven.value) || 0;
+            changeAmount = given - total;
+            
+            if (changeAmount >= 0) {
+                changeDisplay.value = '₱' + changeAmount.toFixed(2);
+                changeDisplay.style.color = '#155724';
+            } else {
+                changeDisplay.value = '₱' + changeAmount.toFixed(2) + ' (Insufficient)';
+                changeDisplay.style.color = '#721c24';
+            }
+        }
         
         // ============= INITIALIZATION =============
         document.addEventListener('DOMContentLoaded', function() {
@@ -1050,6 +481,7 @@
                 document.getElementById('totalDisplay').textContent = '₱0.00';
                 document.getElementById('itemCount').textContent = '0';
                 document.getElementById('checkoutBtn').disabled = true;
+                cashRow.style.display = 'none';
                 return;
             }
             
@@ -1084,6 +516,12 @@
             document.getElementById('totalDisplay').textContent = `₱${totalPrice.toFixed(2)}`;
             document.getElementById('itemCount').textContent = totalItems;
             document.getElementById('checkoutBtn').disabled = false;
+            
+            // Show cash row if payment method is Cash
+            if (paymentMethod.value === 'Cash') {
+                cashRow.style.display = 'grid';
+                calculateChange();
+            }
         }
         
         function updateCartQty(index, delta) {
@@ -1129,11 +567,24 @@
             }
             
             const customerName = document.getElementById('customerName').value.trim();
-            const paymentMethod = document.getElementById('paymentMethod').value;
+            const paymentMethodVal = document.getElementById('paymentMethod').value;
             const paymentReference = document.getElementById('paymentReference').value.trim();
             const orderType = document.getElementById('orderType').value;
             
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            // Check cash given if payment is cash
+            let cashGivenVal = 0;
+            let changeVal = 0;
+            if (paymentMethodVal === 'Cash') {
+                cashGivenVal = parseFloat(document.getElementById('cashGiven').value) || 0;
+                changeVal = cashGivenVal - total;
+                if (changeVal < 0) {
+                    showStatus('Insufficient cash given! Please enter correct amount.', 'error');
+                    document.getElementById('cashGiven').focus();
+                    return;
+                }
+            }
             
             document.getElementById('checkoutBtn').disabled = true;
             document.getElementById('checkoutBtn').textContent = '⏳ Processing...';
@@ -1151,15 +602,16 @@
                         quantity: item.quantity,
                         price: item.price,
                         total: item.price * item.quantity,
-                        paymentMethod: paymentMethod,
+                        paymentMethod: paymentMethodVal,
                         paymentReference: paymentReference,
                         customerName: customerName,
-                        orderType: orderType
+                        orderType: orderType,
+                        cashGiven: cashGivenVal,
+                        change: changeVal
                     };
                     
                     console.log('Sending sale data:', saleData);
                     
-                    // Use CORS proxy
                     const proxyUrl = `https://corsproxy.io/?${WEB_APP_URL}?action=addSale`;
                     
                     const response = await fetch(proxyUrl, {
@@ -1197,11 +649,13 @@
                     total: total,
                     cashier: cashier,
                     customerName: customerName,
-                    paymentMethod: paymentMethod,
+                    paymentMethod: paymentMethodVal,
                     orderType: orderType,
-                    receiptNumber: currentSale?.receiptNumber || 'N/A',
+                    receiptNumber: currentSale?.receiptNumber || 'REC-' + Date.now(),
                     date: currentSale?.date || new Date().toLocaleDateString(),
-                    time: currentSale?.time || new Date().toLocaleTimeString()
+                    time: currentSale?.time || new Date().toLocaleTimeString(),
+                    cashGiven: cashGivenVal,
+                    change: changeVal
                 };
                 
                 showReceipt();
@@ -1209,6 +663,9 @@
                 updateCart();
                 document.getElementById('customerName').value = '';
                 document.getElementById('paymentReference').value = '';
+                document.getElementById('cashGiven').value = '';
+                document.getElementById('changeDisplay').value = '';
+                cashRow.style.display = 'none';
                 
                 showStatus('Order completed successfully!', 'success');
                 
@@ -1237,12 +694,13 @@
                 <div class="receipt-divider"></div>
             `;
             
+            // Items
             receiptData.items.forEach(item => {
                 const itemTotal = item.price * item.quantity;
                 receiptHTML += `
                     <div class="receipt-row">
-                        <span>${item.quantity}x ${item.itemName}${item.variant ? ' ('+item.variant+')' : ''}</span>
-                        <span>₱${itemTotal.toFixed(2)}</span>
+                        <span class="item-name-col">${item.quantity}x ${item.itemName}${item.variant ? ' ('+item.variant+')' : ''}</span>
+                        <span class="item-price-col">₱${itemTotal.toFixed(2)}</span>
                     </div>
                 `;
             });
@@ -1251,17 +709,39 @@
                 <div class="receipt-divider"></div>
                 <div class="receipt-total">
                     <div class="total-row">
-                        <span>Total:</span>
-                        <span>₱${receiptData.total.toFixed(2)}</span>
+                        <span class="label">Subtotal:</span>
+                        <span class="amount">₱${receiptData.total.toFixed(2)}</span>
+                    </div>
+            `;
+            
+            // Add cash and change if payment method is Cash
+            if (receiptData.paymentMethod === 'Cash' && receiptData.cashGiven > 0) {
+                receiptHTML += `
+                    <div class="total-row">
+                        <span class="label">Cash Given:</span>
+                        <span class="amount">₱${receiptData.cashGiven.toFixed(2)}</span>
                     </div>
                     <div class="total-row">
-                        <span>Payment:</span>
-                        <span>${receiptData.paymentMethod}</span>
+                        <span class="label">Change:</span>
+                        <span class="amount">₱${receiptData.change.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+            
+            receiptHTML += `
+                    <div class="total-row grand-total">
+                        <span>Total:</span>
+                        <span class="amount">₱${receiptData.total.toFixed(2)}</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="label">Payment:</span>
+                        <span class="amount">${receiptData.paymentMethod}</span>
                     </div>
                 </div>
                 <div class="receipt-footer">
                     <p>Thank you for your order!</p>
                     <p>Please come again</p>
+                    ${receiptData.change > 0 ? `<p style="color: #1a73e8; font-weight: bold;">Change: ₱${receiptData.change.toFixed(2)}</p>` : ''}
                 </div>
             `;
             
@@ -1329,6 +809,7 @@
                 const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
                 const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
                 
+                // Build 58mm receipt text
                 let receiptText = '';
                 receiptText += '================\n';
                 receiptText += '   POS System   \n';
@@ -1342,6 +823,7 @@
                 }
                 receiptText += '----------------\n';
                 
+                // Items
                 receiptData.items.forEach(item => {
                     const itemTotal = item.price * item.quantity;
                     const name = item.itemName + (item.variant ? ' ('+item.variant+')' : '');
@@ -1351,6 +833,12 @@
                 
                 receiptText += '----------------\n';
                 receiptText += `TOTAL: ₱${receiptData.total.toFixed(2)}\n`;
+                
+                if (receiptData.paymentMethod === 'Cash' && receiptData.cashGiven > 0) {
+                    receiptText += `Cash Given: ₱${receiptData.cashGiven.toFixed(2)}\n`;
+                    receiptText += `Change: ₱${receiptData.change.toFixed(2)}\n`;
+                }
+                
                 receiptText += `Payment: ${receiptData.paymentMethod}\n`;
                 receiptText += '================\n';
                 receiptText += 'Thank you!\n';
