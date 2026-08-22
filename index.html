@@ -1428,7 +1428,7 @@
             window.print();
         }
         
-        // ============= BLUETOOTH PRINTER =============
+        // ============= GOOJPRT PT-210 BLUETOOTH PRINTER =============
         async function connectPrinter() {
             if (!navigator.bluetooth) {
                 showStatus('Bluetooth not supported', 'error');
@@ -1436,7 +1436,7 @@
             }
             
             try {
-                showStatus('Searching for printer...', 'info');
+                showStatus('Searching for GoojPRT PT-210...', 'info');
                 printerBtn.disabled = true;
                 
                 const device = await navigator.bluetooth.requestDevice({
@@ -1449,11 +1449,11 @@
                 
                 printerBtn.classList.remove('disconnected');
                 printerBtn.classList.add('connected');
-                printerBtn.innerHTML = '✅ Printer Connected';
-                printerStatusText.textContent = 'Connected to: ' + (device.name || 'Printer');
+                printerBtn.innerHTML = '✅ GoojPRT Connected';
+                printerStatusText.textContent = 'Connected to: ' + (device.name || 'GoojPRT');
                 printerDot.className = 'status-dot online';
                 
-                showStatus('Printer connected!', 'success');
+                showStatus('GoojPRT connected!', 'success');
                 
             } catch (error) {
                 if (error.message.includes('cancelled')) {
@@ -1467,62 +1467,105 @@
             }
         }
         
+        // ============= FIXED PRINT FUNCTION FOR GOOJPRT PT-210 =============
         async function printToBluetooth() {
             if (!printerConnected || !printerDevice) {
-                showStatus('Please connect printer first!', 'error');
+                showStatus('Please connect GoojPRT first!', 'error');
                 return;
             }
             
             try {
-                showStatus('Printing...', 'info');
+                showStatus('Printing to GoojPRT...', 'info');
                 
                 const server = await printerDevice.gatt.connect();
-                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-                const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
                 
-                // Build 58mm receipt text with Moraya Cafe
-                let receiptText = '';
-                receiptText += '================\n';
-                receiptText += `  ${STORE_NAME}  \n`;
-                receiptText += '================\n';
-                receiptText += `${receiptData.date} ${receiptData.time}\n`;
-                receiptText += `Receipt: ${receiptData.receiptNumber}\n`;
-                receiptText += `Cashier: ${receiptData.cashier}\n`;
-                receiptText += `${receiptData.orderType}\n`;
-                if (receiptData.customerName) {
-                    receiptText += `Customer: ${receiptData.customerName}\n`;
+                // Try both possible service UUIDs for GoojPRT
+                let service;
+                try {
+                    service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+                } catch (e) {
+                    try {
+                        service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+                    } catch (e2) {
+                        throw new Error('Could not find printer service. Please make sure the printer is in pairing mode.');
+                    }
                 }
-                receiptText += '----------------\n';
                 
-                // Items
+                // Try both possible characteristic UUIDs
+                let characteristic;
+                try {
+                    characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+                } catch (e) {
+                    try {
+                        characteristic = await service.getCharacteristic('000018f0-0000-1000-8000-00805f9b34fb');
+                    } catch (e2) {
+                        throw new Error('Could not find printer characteristic.');
+                    }
+                }
+                
+                // Build the complete receipt text
+                let fullReceipt = '';
+                fullReceipt += '================\n';
+                fullReceipt += `  ${STORE_NAME}  \n`;
+                fullReceipt += '================\n';
+                fullReceipt += `${receiptData.date} ${receiptData.time}\n`;
+                fullReceipt += `Receipt: ${receiptData.receiptNumber}\n`;
+                fullReceipt += `Cashier: ${receiptData.cashier}\n`;
+                fullReceipt += `${receiptData.orderType}\n`;
+                if (receiptData.customerName) {
+                    fullReceipt += `Customer: ${receiptData.customerName}\n`;
+                }
+                fullReceipt += '----------------\n';
+                
+                // Add ALL items
                 receiptData.items.forEach(item => {
                     const itemTotal = item.price * item.quantity;
                     const name = item.itemName + (item.variant ? ' ('+item.variant+')' : '');
-                    receiptText += `${item.quantity}x ${name}\n`;
-                    receiptText += `     ₱${itemTotal.toFixed(2)}\n`;
+                    fullReceipt += `${item.quantity}x ${name}\n`;
+                    fullReceipt += `     ₱${itemTotal.toFixed(2)}\n`;
                 });
                 
-                receiptText += '----------------\n';
-                receiptText += `Subtotal: ₱${receiptData.total.toFixed(2)}\n`;
+                fullReceipt += '----------------\n';
+                fullReceipt += `Subtotal: ₱${receiptData.total.toFixed(2)}\n`;
                 
                 if (receiptData.paymentMethod === 'Cash' && receiptData.cashGiven > 0) {
-                    receiptText += `Cash Given: ₱${receiptData.cashGiven.toFixed(2)}\n`;
-                    receiptText += `Change: ₱${receiptData.change.toFixed(2)}\n`;
+                    fullReceipt += `Cash Given: ₱${receiptData.cashGiven.toFixed(2)}\n`;
+                    fullReceipt += `Change: ₱${receiptData.change.toFixed(2)}\n`;
                 }
                 
-                receiptText += `TOTAL: ₱${receiptData.total.toFixed(2)}\n`;
-                receiptText += `Payment: ${receiptData.paymentMethod}\n`;
-                receiptText += '================\n';
-                receiptText += 'Thank you!\n';
-                receiptText += '================\n\n\n';
+                fullReceipt += `TOTAL: ₱${receiptData.total.toFixed(2)}\n`;
+                fullReceipt += `Payment: ${receiptData.paymentMethod}\n`;
+                fullReceipt += '================\n';
+                fullReceipt += 'Thank you!\n';
+                fullReceipt += '================\n\n\n';
                 
+                // ============= SEND IN CHUNKS FOR GOOJPRT =============
                 const encoder = new TextEncoder();
-                const data = encoder.encode(receiptText);
-                await characteristic.writeValue(data);
+                const data = encoder.encode(fullReceipt);
                 
-                showStatus('Printing complete!', 'success');
+                // Split into chunks of 20 bytes (small buffer for GoojPRT)
+                const chunkSize = 20;
+                let offset = 0;
+                
+                while (offset < data.length) {
+                    const chunk = data.slice(offset, offset + chunkSize);
+                    await characteristic.writeValue(chunk);
+                    
+                    // Small delay between chunks to let printer process
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    offset += chunkSize;
+                }
+                
+                // Send final newline to flush buffer
+                await new Promise(resolve => setTimeout(resolve, 200));
+                const endData = encoder.encode('\n\n');
+                await characteristic.writeValue(endData);
+                
+                showStatus('GoojPRT printing complete!', 'success');
                 
             } catch (error) {
+                console.error('Print error:', error);
                 showStatus('Print error: ' + error.message, 'error');
             }
         }
