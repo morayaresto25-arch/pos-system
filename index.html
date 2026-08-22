@@ -1428,7 +1428,7 @@
             window.print();
         }
         
-        // ============= GOOJPRT PT-210 BLUETOOTH PRINTER =============
+        // ============= GOOJPRT PT-210 BLUETOOTH PRINTER (NO PESO SIGN) =============
         async function connectPrinter() {
             if (!navigator.bluetooth) {
                 showStatus('Bluetooth not supported', 'error');
@@ -1467,7 +1467,7 @@
             }
         }
         
-        // ============= FIXED PRINT FUNCTION FOR GOOJPRT PT-210 =============
+        // ============= FIXED: NO PESO SIGN IN PRINTED RECEIPT =============
         async function printToBluetooth() {
             if (!printerConnected || !printerDevice) {
                 showStatus('Please connect GoojPRT first!', 'error');
@@ -1479,7 +1479,6 @@
                 
                 const server = await printerDevice.gatt.connect();
                 
-                // Try both possible service UUIDs for GoojPRT
                 let service;
                 try {
                     service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
@@ -1491,7 +1490,6 @@
                     }
                 }
                 
-                // Try both possible characteristic UUIDs
                 let characteristic;
                 try {
                     characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
@@ -1503,7 +1501,7 @@
                     }
                 }
                 
-                // Build the complete receipt text
+                // ============= BUILD RECEIPT WITHOUT PESO SIGN =============
                 let fullReceipt = '';
                 fullReceipt += '================\n';
                 fullReceipt += `  ${STORE_NAME}  \n`;
@@ -1517,23 +1515,23 @@
                 }
                 fullReceipt += '----------------\n';
                 
-                // Add ALL items
+                // Add ALL items - NO PESO SIGN, just the number
                 receiptData.items.forEach(item => {
                     const itemTotal = item.price * item.quantity;
                     const name = item.itemName + (item.variant ? ' ('+item.variant+')' : '');
                     fullReceipt += `${item.quantity}x ${name}\n`;
-                    fullReceipt += `     ₱${itemTotal.toFixed(2)}\n`;
+                    fullReceipt += `     ${itemTotal.toFixed(2)}\n`;  // No ₱ sign
                 });
                 
                 fullReceipt += '----------------\n';
-                fullReceipt += `Subtotal: ₱${receiptData.total.toFixed(2)}\n`;
+                fullReceipt += `Subtotal: ${receiptData.total.toFixed(2)}\n`;  // No ₱ sign
                 
                 if (receiptData.paymentMethod === 'Cash' && receiptData.cashGiven > 0) {
-                    fullReceipt += `Cash Given: ₱${receiptData.cashGiven.toFixed(2)}\n`;
-                    fullReceipt += `Change: ₱${receiptData.change.toFixed(2)}\n`;
+                    fullReceipt += `Cash Given: ${receiptData.cashGiven.toFixed(2)}\n`;  // No ₱ sign
+                    fullReceipt += `Change: ${receiptData.change.toFixed(2)}\n`;  // No ₱ sign
                 }
                 
-                fullReceipt += `TOTAL: ₱${receiptData.total.toFixed(2)}\n`;
+                fullReceipt += `TOTAL: ${receiptData.total.toFixed(2)}\n`;  // No ₱ sign
                 fullReceipt += `Payment: ${receiptData.paymentMethod}\n`;
                 fullReceipt += '================\n';
                 fullReceipt += 'Thank you!\n';
@@ -1543,21 +1541,17 @@
                 const encoder = new TextEncoder();
                 const data = encoder.encode(fullReceipt);
                 
-                // Split into chunks of 20 bytes (small buffer for GoojPRT)
+                // Split into chunks of 20 bytes
                 const chunkSize = 20;
                 let offset = 0;
                 
                 while (offset < data.length) {
                     const chunk = data.slice(offset, offset + chunkSize);
                     await characteristic.writeValue(chunk);
-                    
-                    // Small delay between chunks to let printer process
                     await new Promise(resolve => setTimeout(resolve, 100));
-                    
                     offset += chunkSize;
                 }
                 
-                // Send final newline to flush buffer
                 await new Promise(resolve => setTimeout(resolve, 200));
                 const endData = encoder.encode('\n\n');
                 await characteristic.writeValue(endData);
