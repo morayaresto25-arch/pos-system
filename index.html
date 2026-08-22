@@ -852,7 +852,7 @@
 
     <script>
         // ============= CONFIGURATION =============
-        // REPLACE THIS WITH YOUR ACTUAL WEB APP URL FROM APPS SCRIPT
+        // Your Web App URL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwAku3G2YvVEhD6OGB2rN-EA8Y7xsC15KV5HOERvaaWa7eiJv_VDPuFv2fOY44SPynk8A/exec';
         
         // ============= VARIABLES =============
@@ -1159,7 +1159,10 @@
                     
                     console.log('Sending sale data:', saleData);
                     
-                    const response = await fetch(`${WEB_APP_URL}?action=addSale`, {
+                    // Use CORS proxy
+                    const proxyUrl = `https://corsproxy.io/?${WEB_APP_URL}?action=addSale`;
+                    
+                    const response = await fetch(proxyUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1170,8 +1173,6 @@
                     console.log('Response status:', response.status);
                     
                     if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error('Error response:', errorText);
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     
