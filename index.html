@@ -927,11 +927,6 @@
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbykWN2jHio0TrObazvOgFOjmOKV1kO-fHl55prJRbIXi2fZqVgZkyAeqKWUMT0VuMBqgw/exec';
         const STORE_NAME = 'Moraya Cafe';
         
-        // ============= CORS PROXY CONFIGURATION =============
-        // Using a different CORS proxy that works
-        const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-        // Alternative proxy if the above doesn't work: https://corsproxy.io/?
-        
         // ============= VARIABLES =============
         let menuItems = [];
         let cart = [];
@@ -1230,7 +1225,7 @@
             }
         }
         
-        // ============= CHECKOUT WITH CORS PROXY =============
+        // ============= CHECKOUT - REDIRECT METHOD (NO CORS) =============
         async function processCheckout() {
             if (cart.length === 0) {
                 showStatus('Cart is empty!', 'error');
@@ -1267,61 +1262,29 @@
             document.getElementById('checkoutBtn').textContent = '⏳ Processing...';
             
             try {
-                let allSuccess = true;
-                let errorMessage = '';
+                // Build URL with all data as parameters (GET method bypasses CORS)
+                let params = `?action=addSale&cashier=${encodeURIComponent(cashier)}`;
+                params += `&customerName=${encodeURIComponent(customerName)}`;
+                params += `&paymentMethod=${encodeURIComponent(paymentMethodVal)}`;
+                params += `&paymentReference=${encodeURIComponent(paymentReference)}`;
+                params += `&orderType=${encodeURIComponent(orderType)}`;
+                params += `&cashGiven=${encodeURIComponent(cashGivenVal)}`;
+                params += `&change=${encodeURIComponent(changeVal)}`;
                 
-                for (const item of cart) {
-                    const saleData = {
-                        cashier: cashier,
-                        category: item.category || '',
-                        item: item.itemName,
-                        variant: item.variant || '',
-                        quantity: item.quantity,
-                        price: item.price,
-                        total: item.price * item.quantity,
-                        paymentMethod: paymentMethodVal,
-                        paymentReference: paymentReference,
-                        customerName: customerName,
-                        orderType: orderType,
-                        cashGiven: cashGivenVal,
-                        change: changeVal
-                    };
-                    
-                    console.log('Sending sale data:', saleData);
-                    
-                    // Use CORS proxy for POST request
-                    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(WEB_APP_URL)}?action=addSale`;
-                    
-                    const response = await fetch(proxyUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(saleData)
-                    });
-                    
-                    console.log('Response status:', response.status);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    const saleResult = await response.json();
-                    console.log('Sale result:', saleResult);
-                    
-                    if (!saleResult.success) {
-                        allSuccess = false;
-                        errorMessage = saleResult.message || 'Sale failed';
-                        break;
-                    }
-                    
-                    currentSale = saleResult;
-                }
+                // Add each item
+                cart.forEach((item, index) => {
+                    params += `&item${index}=${encodeURIComponent(item.itemName)}`;
+                    params += `&variant${index}=${encodeURIComponent(item.variant || '')}`;
+                    params += `&quantity${index}=${encodeURIComponent(item.quantity)}`;
+                    params += `&price${index}=${encodeURIComponent(item.price)}`;
+                    params += `&total${index}=${encodeURIComponent(item.price * item.quantity)}`;
+                    params += `&category${index}=${encodeURIComponent(item.category || '')}`;
+                });
                 
-                if (!allSuccess) {
-                    throw new Error(errorMessage || 'Sale failed');
-                }
+                // Open in new tab (this bypasses CORS)
+                window.open(WEB_APP_URL + params, '_blank');
                 
+                // Show receipt locally
                 receiptData = {
                     items: [...cart],
                     total: total,
@@ -1329,9 +1292,9 @@
                     customerName: customerName,
                     paymentMethod: paymentMethodVal,
                     orderType: orderType,
-                    receiptNumber: currentSale?.receiptNumber || 'REC-' + Date.now(),
-                    date: currentSale?.date || new Date().toLocaleDateString(),
-                    time: currentSale?.time || new Date().toLocaleTimeString(),
+                    receiptNumber: 'REC-' + Date.now(),
+                    date: new Date().toLocaleDateString(),
+                    time: new Date().toLocaleTimeString(),
                     cashGiven: cashGivenVal,
                     change: changeVal,
                     storeName: STORE_NAME
@@ -1346,7 +1309,7 @@
                 document.getElementById('changeDisplay').value = '';
                 cashRow.style.display = 'none';
                 
-                showStatus('Order completed successfully!', 'success');
+                showStatus('Order completed! Data sent to Google Sheets.', 'success');
                 
             } catch (error) {
                 console.error('Checkout error:', error);
