@@ -927,6 +927,11 @@
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbykWN2jHio0TrObazvOgFOjmOKV1kO-fHl55prJRbIXi2fZqVgZkyAeqKWUMT0VuMBqgw/exec';
         const STORE_NAME = 'Moraya Cafe';
         
+        // ============= CORS PROXY CONFIGURATION =============
+        // Using a different CORS proxy that works
+        const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+        // Alternative proxy if the above doesn't work: https://corsproxy.io/?
+        
         // ============= VARIABLES =============
         let menuItems = [];
         let cart = [];
@@ -1225,7 +1230,7 @@
             }
         }
         
-        // ============= CHECKOUT =============
+        // ============= CHECKOUT WITH CORS PROXY =============
         async function processCheckout() {
             if (cart.length === 0) {
                 showStatus('Cart is empty!', 'error');
@@ -1284,8 +1289,10 @@
                     
                     console.log('Sending sale data:', saleData);
                     
-                    // DIRECT FETCH - NO CORS PROXY
-                    const response = await fetch(`${WEB_APP_URL}?action=addSale`, {
+                    // Use CORS proxy for POST request
+                    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(WEB_APP_URL)}?action=addSale`;
+                    
+                    const response = await fetch(proxyUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
