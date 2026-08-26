@@ -1284,6 +1284,7 @@
                     
                     console.log('Sending sale data:', saleData);
                     
+                    // DIRECT FETCH - NO CORS PROXY
                     const response = await fetch(`${WEB_APP_URL}?action=addSale`, {
                         method: 'POST',
                         headers: {
