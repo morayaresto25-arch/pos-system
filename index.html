@@ -985,7 +985,7 @@
         
         // ============= INITIALIZATION =============
         document.addEventListener('DOMContentLoaded', function() {
-            console.log(STORE_NAME + ' POS System Started');
+            console.log('Moraya Cafe POS System Started');
             console.log('Web App URL:', WEB_APP_URL);
             loadMenu();
             
@@ -1284,9 +1284,7 @@
                     
                     console.log('Sending sale data:', saleData);
                     
-                    const proxyUrl = `https://corsproxy.io/?${WEB_APP_URL}?action=addSale`;
-                    
-                    const response = await fetch(proxyUrl, {
+                    const response = await fetch(`${WEB_APP_URL}?action=addSale`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1428,7 +1426,7 @@
             window.print();
         }
         
-        // ============= GOOJPRT PT-210 BLUETOOTH PRINTER (NO PESO SIGN) =============
+        // ============= GOOJPRT PT-210 BLUETOOTH PRINTER =============
         async function connectPrinter() {
             if (!navigator.bluetooth) {
                 showStatus('Bluetooth not supported', 'error');
@@ -1467,7 +1465,6 @@
             }
         }
         
-        // ============= FIXED: NO PESO SIGN IN PRINTED RECEIPT =============
         async function printToBluetooth() {
             if (!printerConnected || !printerDevice) {
                 showStatus('Please connect GoojPRT first!', 'error');
@@ -1486,7 +1483,7 @@
                     try {
                         service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
                     } catch (e2) {
-                        throw new Error('Could not find printer service. Please make sure the printer is in pairing mode.');
+                        throw new Error('Could not find printer service.');
                     }
                 }
                 
@@ -1501,7 +1498,7 @@
                     }
                 }
                 
-                // ============= BUILD RECEIPT WITHOUT PESO SIGN =============
+                // Build receipt WITHOUT peso sign
                 let fullReceipt = '';
                 fullReceipt += '================\n';
                 fullReceipt += `  ${STORE_NAME}  \n`;
@@ -1515,33 +1512,32 @@
                 }
                 fullReceipt += '----------------\n';
                 
-                // Add ALL items - NO PESO SIGN, just the number
+                // Items - NO PESO SIGN
                 receiptData.items.forEach(item => {
                     const itemTotal = item.price * item.quantity;
                     const name = item.itemName + (item.variant ? ' ('+item.variant+')' : '');
                     fullReceipt += `${item.quantity}x ${name}\n`;
-                    fullReceipt += `     ${itemTotal.toFixed(2)}\n`;  // No ₱ sign
+                    fullReceipt += `     ${itemTotal.toFixed(2)}\n`;
                 });
                 
                 fullReceipt += '----------------\n';
-                fullReceipt += `Subtotal: ${receiptData.total.toFixed(2)}\n`;  // No ₱ sign
+                fullReceipt += `Subtotal: ${receiptData.total.toFixed(2)}\n`;
                 
                 if (receiptData.paymentMethod === 'Cash' && receiptData.cashGiven > 0) {
-                    fullReceipt += `Cash Given: ${receiptData.cashGiven.toFixed(2)}\n`;  // No ₱ sign
-                    fullReceipt += `Change: ${receiptData.change.toFixed(2)}\n`;  // No ₱ sign
+                    fullReceipt += `Cash Given: ${receiptData.cashGiven.toFixed(2)}\n`;
+                    fullReceipt += `Change: ${receiptData.change.toFixed(2)}\n`;
                 }
                 
-                fullReceipt += `TOTAL: ${receiptData.total.toFixed(2)}\n`;  // No ₱ sign
+                fullReceipt += `TOTAL: ${receiptData.total.toFixed(2)}\n`;
                 fullReceipt += `Payment: ${receiptData.paymentMethod}\n`;
                 fullReceipt += '================\n';
                 fullReceipt += 'Thank you!\n';
                 fullReceipt += '================\n\n\n';
                 
-                // ============= SEND IN CHUNKS FOR GOOJPRT =============
+                // Send in chunks for GoojPRT
                 const encoder = new TextEncoder();
                 const data = encoder.encode(fullReceipt);
                 
-                // Split into chunks of 20 bytes
                 const chunkSize = 20;
                 let offset = 0;
                 
